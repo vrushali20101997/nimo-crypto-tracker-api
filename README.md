@@ -45,9 +45,17 @@ Testing
   a. Invoke-RestMethod -Uri "https://.execute-api.ap-southeast-2.amazonaws.com/prod/crypto/history" -Method GET -Headers @{"X-API-Key"=""}
 <img width="2270" height="764" alt="image" src="https://github.com/user-attachments/assets/2015c0ed-4c6e-4332-9f30-af276a225e91" />
 
+Authentication-
+All requests require an API key header:
+X-API-Key: <your-api-key>
+Rate Limits- Rate: 10 requests/second
+
+Performance Optimizations
+1. 60-Second Caching - Reduces external API calls by ~95%, stores prices in DynamoDB cache
+2. GSI Queries - No table scans; uses Global Secondary Indexes for O(log n) performance
+3. Retry Logic - Exponential backoff (3 attempts) for transient failures
 
 Security
-
 1. API Key Authentication - Required for all endpoints
 2. IAM Least Privilege - Lambdas have minimal permissions
 3. CORS Configuration - Configurable allowed origins
@@ -62,4 +70,5 @@ Application
 
 Email
 <img width="1556" height="1200" alt="image" src="https://github.com/user-attachments/assets/0890e809-e8d9-4a25-a038-4efd9b6c1926" />
+
 
