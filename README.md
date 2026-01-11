@@ -1,4 +1,5 @@
-NIMO CRYPTO TRACKER - A serverless cryptocurrency price tracking system built on AWS, featuring real-time price retrieval, email notifications, and search history management.
+NIMO CRYPTO TRACKER-
+A serverless cryptocurrency price tracking system built on AWS, featuring real-time price retrieval, email notifications, and search history management.
 
 I have 2 microservices:
   1. getCryptoPrice - Fetches cryptocurrency prices and sends email notifications
@@ -70,5 +71,6 @@ Application
 
 Email
 <img width="1556" height="1200" alt="image" src="https://github.com/user-attachments/assets/0890e809-e8d9-4a25-a038-4efd9b6c1926" />
+
 
 
