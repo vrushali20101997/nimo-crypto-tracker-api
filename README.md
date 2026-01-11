@@ -37,17 +37,29 @@ Installation and Deployment
   b. Note API KEY
 
 Testing
-1. Test getCryptoPrice
+1. Test getCryptoPrice - 
   a. Invoke-RestMethod -Uri "https://.execute-api.ap-southeast-2.amazonaws.com/prod/crypto/price" -Method POST -Headers @{"Content-Type"="application/json"; "X-API-Key"=""} -Body '{"cryptocurrency":"bitcoin","email":"test@example.com"}'
-2. Test getSearchHistory
+<img width="2218" height="262" alt="image" src="https://github.com/user-attachments/assets/70738fab-bd56-4638-bec1-fbb679ec13a0" />
+
+2. Test getSearchHistory - 
   a. Invoke-RestMethod -Uri "https://.execute-api.ap-southeast-2.amazonaws.com/prod/crypto/history" -Method GET -Headers @{"X-API-Key"=""}
+<img width="2270" height="764" alt="image" src="https://github.com/user-attachments/assets/2015c0ed-4c6e-4332-9f30-af276a225e91" />
+
 
 Security
- Security
 
 1. API Key Authentication - Required for all endpoints
 2. IAM Least Privilege - Lambdas have minimal permissions
 3. CORS Configuration - Configurable allowed origins
 4. Input Validation - RFC 5322 email validation, crypto whitelist
 5. Rate Limiting - Enforced at API Gateway level
+
+DynamoDB
+<img width="1868" height="818" alt="image" src="https://github.com/user-attachments/assets/3cf5706b-2df4-4849-98e2-fff27538ad32" />
+
+Application
+<img width="2396" height="1666" alt="image" src="https://github.com/user-attachments/assets/15b5796a-5463-40fe-94e2-325465ee7d95" />
+
+Email
+<img width="1556" height="1200" alt="image" src="https://github.com/user-attachments/assets/0890e809-e8d9-4a25-a038-4efd9b6c1926" />
 
