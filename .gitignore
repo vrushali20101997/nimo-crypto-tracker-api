@@ -1,0 +1,45 @@
+# AWS SAM
+.aws-sam/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Build
+dist/
+build/
+*.zip
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Test files (local only)
+test-event.json
+*.local.json
+
+# Misc
+.cache/
+temp/
+tmp/

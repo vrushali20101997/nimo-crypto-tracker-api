@@ -1,0 +1,205 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Nimo Industries - Cryptocurrency Price Tracker
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: nodejs18.x
+    MemorySize: 256
+    Environment:
+      Variables:
+        CRYPTO_HISTORY_TABLE: !Ref CryptoHistoryTable
+        SENDER_EMAIL: !Ref SenderEmail
+    Architectures:
+      - x86_64
+
+Parameters:
+  SenderEmail:
+    Type: String
+    Description: Verified SES email address
+    Default: vrushaliyadav92@outlook.com
+
+Resources:
+  CryptoHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: crypto-search-history
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+        - AttributeName: recordType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      
+      GlobalSecondaryIndexes:
+        - IndexName: email-timestamp-index
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        
+        - IndexName: type-timestamp-index
+          KeySchema:
+            - AttributeName: recordType
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  CryptoApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Auth:
+        ApiKeyRequired: true
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,x-api-key'"
+        AllowOrigin: "'*'"
+        AllowCredentials: false
+
+  GetCryptoPriceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/lambdas/getCryptoPrice/
+      Handler: index.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CryptoHistoryTable
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ses:SendEmail
+              - ses:SendRawEmail
+            Resource: '*'
+      Events:
+        GetPrice:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CryptoApi
+            Path: /crypto/price
+            Method: post
+            Auth:
+              ApiKeyRequired: true
+        GetPriceOptions:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CryptoApi
+            Path: /crypto/price
+            Method: options
+            Auth:
+              ApiKeyRequired: false
+
+  GetSearchHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/lambdas/getSearchHistory/
+      Handler: index.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref CryptoHistoryTable
+      Events:
+        GetHistory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CryptoApi
+            Path: /crypto/history
+            Method: get
+            Auth:
+              ApiKeyRequired: true
+        GetHistoryOptions:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CryptoApi
+            Path: /crypto/history
+            Method: options
+            Auth:
+              ApiKeyRequired: false
+
+  CryptoApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    DependsOn: 
+      - CryptoApi
+      - GetCryptoPriceFunction
+      - GetSearchHistoryFunction
+    Properties:
+      Name: CryptoTrackerApiKey
+      Description: API key for rate limiting
+      Enabled: true
+      StageKeys:
+        - RestApiId: !Ref CryptoApi
+          StageName: prod
+
+  CryptoApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn: 
+      - CryptoApi
+      - GetCryptoPriceFunction
+      - GetSearchHistoryFunction
+    Properties:
+      UsagePlanName: CryptoTrackerUsagePlan
+      Description: Rate limiting for Crypto Tracker API
+      Throttle:
+        RateLimit: 10
+        BurstLimit: 20
+      Quota:
+        Limit: 1000
+        Period: DAY
+      ApiStages:
+        - ApiId: !Ref CryptoApi
+          Stage: prod
+
+  CryptoApiUsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref CryptoApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref CryptoApiUsagePlan
+
+Outputs:
+  CryptoApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${CryptoApi}.execute-api.${AWS::Region}.amazonaws.com/prod/
+
+  GetCryptoPriceEndpoint:
+    Description: Get crypto price endpoint
+    Value: !Sub https://${CryptoApi}.execute-api.${AWS::Region}.amazonaws.com/prod/crypto/price
+
+  GetSearchHistoryEndpoint:
+    Description: Get search history endpoint
+    Value: !Sub https://${CryptoApi}.execute-api.${AWS::Region}.amazonaws.com/prod/crypto/history
+
+  ApiKeyId:
+    Description: API Key ID (use this in the command below)
+    Value: !Ref CryptoApiKey
+
+  RetrieveApiKeyCommand:
+    Description: Run this command to get your API key value
+    Value: !Sub |
+      aws apigateway get-api-key --api-key ${CryptoApiKey} --include-value --region ${AWS::Region}

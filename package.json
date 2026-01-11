@@ -1,0 +1,35 @@
+{
+  "name": "nimo-crypto-tracker",
+  "version": "1.0.0",
+  "description": "Serverless cryptocurrency price tracker with email notifications",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "cd src/lambdas/getCryptoPrice && npm install && cd ../getSearchHistory && npm install",
+    "validate": "sam validate --lint",
+    "build": "sam build",
+    "deploy": "sam deploy --guided",
+    "deploy:ci": "sam build && sam deploy --no-confirm-changeset --no-fail-on-empty-changeset",
+    "local": "sam local start-api",
+    "logs:price": "sam logs -n GetCryptoPriceFunction --stack-name nimo-crypto-tracker --tail",
+    "logs:history": "sam logs -n GetSearchHistoryFunction --stack-name nimo-crypto-tracker --tail",
+    "delete": "sam delete --stack-name nimo-crypto-tracker"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/nimo-crypto-tracker.git"
+  },
+  "keywords": [
+    "cryptocurrency",
+    "aws",
+    "lambda",
+    "serverless",
+    "sam",
+    "dynamodb",
+    "ses"
+  ],
+  "author": "Nimo Industries",
+  "license": "MIT",
+  "devDependencies": {
+    "aws-sam-cli": "^1.0.0"
+  }
+}
